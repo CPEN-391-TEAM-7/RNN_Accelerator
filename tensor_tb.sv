@@ -10,7 +10,7 @@ module matrix_tb();
 
 	logic [15:0] param_out  ;
 
-	tensor_2d dut(.*);
+	loader_2d dut(.*);
 
 	always begin
 		#1 clk = 0;
@@ -51,7 +51,7 @@ module vector_tb();
 
 	logic [15:0] param_out  ;
 
-	tensor_1d dut(.*);
+	loader_1d dut(.*);
 
 	always begin
 		#1 clk = 0;
