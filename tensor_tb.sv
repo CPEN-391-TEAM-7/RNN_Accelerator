@@ -4,8 +4,8 @@ module matrix_tb();
 	logic        clk        ;
 	logic        reset_n    ;
 	logic        write      ;
-	logic  [1:0] seli       ;
-	logic  [3:0] selj       ;
+	logic  [1:0] sel_r       ;
+	logic  [3:0] sel_c       ;
 	logic [15:0] param_in   ;
 
 	logic [15:0] param_out  ;
@@ -20,8 +20,8 @@ module matrix_tb();
 	initial begin 
 		reset_n  = 0;
 		write    = 0;
-		seli     = 0;
-		selj     = 0;
+		sel_r     = 0;
+		sel_c     = 0;
 		param_in = 0; 
 		#5;
 		reset_n  = 1;
@@ -31,9 +31,9 @@ module matrix_tb();
 		@(posedge clk)
 		write    = 0;
 		#4;
-		seli = 1;
+		sel_r = 1;
 		@(negedge clk)
-		seli = 0;
+		sel_r = 0;
 		#10;
 
 		$stop;

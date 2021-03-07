@@ -6,8 +6,8 @@ module tensor_2d #(
 	input  logic                 rst_n,
 	input  logic                 write, 
 	input  logic  [15:0]         param_in,
-	input  logic  [ROW_BITS-1:0] seli,
-	input  logic  [COL_BITS-1:0] selj,
+	input  logic  [ROW_BITS-1:0] sel_r,
+	input  logic  [COL_BITS-1:0] sel_c,
 
 	output logic [15:0] param_out
 	);
@@ -27,12 +27,12 @@ always_ff @(posedge clk or negedge rst_n) begin
 
 	end else begin
 
-		if (write) matrix[seli][selj] <= param_in;
+		if (write) matrix[sel_r][sel_c] <= param_in;
 
 	end
 end
 
-assign param_out = matrix[seli][selj];
+assign param_out = matrix[sel_r][sel_c];
 
 endmodule
 
@@ -40,7 +40,7 @@ module tensor_1d #(parameter LEN=4)(
 	input  logic        clk,
 	input  logic        rst_n,
 	input  logic        write, 
-	input  logic  [3:0] sel,
+	input  logic  [LEN-1:0] sel,
 	input  logic [15:0] param_in,
 
 	output logic [15:0] param_out
