@@ -12,8 +12,10 @@ module rnn(
 typedef enum {LOAD, BUSY, DONE} state_t;
 state_t state;
 
+// ==========================================================
 // hidden state tensor module
 // Will be rewritten after each char
+// ==========================================================
 logic        h_write;
 logic  [3:0] h_sel;
 logic [15:0] h_in, h_out;
@@ -22,6 +24,8 @@ tensor_1d #(.LEN(4)) hidden(
 	.clk, .rst_n,
 	.write(h_write), .sel(h_sel), 
 	.param_in(h_in), .param_out(h_out));
+// ==========================================================
+
 
 
 // ==========================================================
@@ -82,6 +86,58 @@ tensor_1d #(.LEN(4)) dense(
 // dense layer bias scalar
 logic [15:0] dense_bias;
 // ==========================================================
+
+
+
+// ==========================================================
+// input data routing 
+// ==========================================================
+assign r0_in    = data_in[15:0];
+assign r0_write = addr[1] && state == LOAD && write;
+
+assign r1_in = data_in[15:0];
+assign r1_write = addr[2] && state == LOAD && write;
+
+assign rb_in = data_in[15:0];
+assign rb_write = addr[3] && state == LOAD && write;
+
+assign  d_in = data_in[15:0];
+assign  d_write = addr[2] && state == LOAD && write;
+
+// ==========================================================
+
+
+// ==========================================================
+// RNN top-level Controller
+// ==========================================================
+
+always_ff @(posedge clk or negedge rst_n) begin
+	if(~rst_n) begin
+		dense_bias <= 15'b0;
+		state      <= LOAD;
+	end else begin
+		case(state)
+
+			LOAD: begin
+				if(write && addr == 0) state <= BUSY;
+			end
+
+			BUSY: begin
+				state <= DONE;
+			end
+
+			DONE: begin
+				state <= LOAD;
+			end
+
+			default: begin
+				state <= LOAD;
+			end
+
+		endcase
+	end
+end
+
 
 
 endmodule : rnn
