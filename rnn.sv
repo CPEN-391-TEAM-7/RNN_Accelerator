@@ -17,7 +17,7 @@ state_t state;
 // Will be rewritten after each char
 // ==========================================================
 logic        i_write;
-logic  [3:0] i_sel;
+logic  [1:0] i_sel;
 logic [15:0] i_in, i_out;
 
 tensor_1d #(.LEN(2)) input_char(
@@ -80,12 +80,12 @@ tensor_2d #(.ROW_BITS(4), .COL_BITS(4) ) rnn_1(
 // recurrent bias tensor module
 // ==========================================================
 logic        rb_write;
-logic  [3:0] rb_sel;
+logic  [2:0] rb_sel;
 logic [15:0] rb_in, rb_out;
 
-tensor_1d #(.LEN(4)) rnn_bias(
+tensor_1d #(.LEN(3)) rnn_bias(
 	.clk, .rst_n, .write(rb_write), 
-	.sel(r_sel), .param_in(rb_in), .param_out(rb_out));
+	.sel(rb_sel), .param_in(rb_in), .param_out(rb_out));
 // ==========================================================
 
 
@@ -165,7 +165,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 			end
 
 			DONE: begin
-				if(write && addr == 0) state <= READY;
+				if(write && addr == 0) state <= LOAD;
 			end
 
 			default: begin
