@@ -9,6 +9,10 @@ module rnn_tb();
 	logic [31:0] data_in;
 	logic [31:0] data_out;
 
+	integer r1;
+	integer c1;
+	integer s1;
+
 	rnn dut(.*);
 
 	always begin
@@ -17,6 +21,9 @@ module rnn_tb();
 	end
 
 	initial begin
+		// ==========================================================
+		// RESET PHASE
+		// ==========================================================
 		rst_n   <= 0;
 		write   <= 0;
 		addr    <= 0;
@@ -24,7 +31,11 @@ module rnn_tb();
 		#10;
 		rst_n   <= 1;
 		#10;
+
+
+		// ==========================================================
 		// START input vector test
+		// ==========================================================
 		@(negedge clk)
 		write   <= 1;
 		addr    <= 1;
@@ -37,9 +48,15 @@ module rnn_tb();
 		assert (dut.input_char.vector[1] === 16'(-3));
 		write <=0;
 		#10;
+		// ==========================================================
 		// END input vector test
+		// ==========================================================
 
-		// START RNN Matrix 1 test
+
+
+		// ==========================================================
+		// START RNN weight Matrix input test
+		// ==========================================================
 		@(negedge clk)
 		write   <= 1;
 		addr    <= 2;
@@ -75,10 +92,34 @@ module rnn_tb();
 		data_in <= {8'd1,8'd3,16'd1};
 		@(negedge clk)
 		assert (dut.rnn_0.matrix[1][3] === 16'd1);
+		write <= 0;
+		#10;
+		// ==========================================================
+		// END RNN weight Matrix input test
+		// ==========================================================
 
+		@(negedge clk)
+		write   <= 1;
+		addr    <= 3;
+
+		for (r1=0; r1< 4; r1=r1+1) begin
+			for (c1=0; c1< 4; c1=c1+1) begin
+				s1 = r1 + c1;
+				data_in <= {r1[7:0], c1[7:0], s1[15:0]};
+				@(negedge clk)
+				assert(dut.rnn_1.matrix[r1][c1] == s1[15:0]);
+			end
+		end
 
 		write <= 0;
 		#10;
+
+		// ==========================================================
+		// START RNN recurrent Matrix input test
+		// ==========================================================
+
+
+
 		$stop;
 	end
 endmodule
