@@ -149,6 +149,31 @@ module rnn_tb();
 		write  <=0;
 		assert(dut.state === dut.START);
 
+		// ==========================================================
+		// Weight matrix multiply result test
+		// ==========================================================
+		@(posedge dut.weight_multiplier.ready)
+		assert(dut.weight_multiplier.imm_vec.vector[0] === 16'(-14));
+		assert(dut.weight_multiplier.imm_vec.vector[1] === 16'(-47));
+		assert(dut.weight_multiplier.imm_vec.vector[2] === 16'(-56));
+		assert(dut.weight_multiplier.imm_vec.vector[3] === 16'(3));
+
+		// ==========================================================
+		// Recurrent Matrix multiply result test
+		// ==========================================================
+		@(posedge dut.recurrent_multiplier.ready)
+		assert(dut.recurrent_multiplier.imm_vec.vector[0] === 0);
+		assert(dut.recurrent_multiplier.imm_vec.vector[1] === 0);
+		assert(dut.recurrent_multiplier.imm_vec.vector[2] === 0);
+		assert(dut.recurrent_multiplier.imm_vec.vector[3] === 0);
+
+		wait(dut.state === dut.ACTIVATION);
+		assert(dut.hidden.vector[0] === 16'(-16));
+		assert(dut.hidden.vector[1] === 16'(-49));
+		assert(dut.hidden.vector[2] === 16'(-57));
+		assert(dut.hidden.vector[3] === 16'(2));
+
+
 		#50;
 		$stop;
 	end
