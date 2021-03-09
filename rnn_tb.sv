@@ -92,6 +92,10 @@ module rnn_tb();
 		// END RNN weight Matrix input test
 		// ==========================================================
 
+
+		// ==========================================================
+		// START RNN recurrent Matrix input test
+		// ==========================================================
 		@(negedge clk)
 		write   <= 1;
 		addr    <= 3;
@@ -108,9 +112,15 @@ module rnn_tb();
 		#10;
 
 		// ==========================================================
-		// START RNN recurrent Matrix input test
+		// END RNN recurrent Matrix input test
 		// ==========================================================
 
+		@(negedge clk)
+		write   <= 1;
+		addr    <= 0;
+
+		@(negedge clk)
+		assert(dut.state === dut.state_t.BUSY);
 
 
 		$stop;

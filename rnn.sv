@@ -9,7 +9,7 @@ module rnn(
 	output logic [31:0] data_out
 	);
 
-typedef enum {LOAD, READY, BUSY, DONE} state_t;
+typedef enum {LOAD, BUSY, DONE} state_t;
 state_t state;
 
 // ==========================================================
@@ -111,31 +111,31 @@ logic [15:0] dense_bias;
 // data routing 
 // IMPORTANT: data_in is used for data AND secondary addressing
 // 1. [ 15:0] represent Q16 fixed point numbers
-// 2. [31:16] depend on the tensor size 
+// 2. [31:16] depend on the tensor shape
 //		1D vector select: [23:16]
 //      2D matrix rows: [31:24], cols: [23:16] 
 // ==========================================================
 
 assign i_in     = data_in[15:0];
-assign i_write  = addr === 1 && state == LOAD && write;
-assign i_sel    = data_in[23:16];
+assign i_write  = addr == 1 && state == LOAD && write;
+assign i_sel    = state == LOAD? data_in[23:16] : ;
 
 assign r0_in    = data_in[15:0];
-assign r0_write = addr === 2 && state == LOAD && write;
-assign r0_sel_r = data_in[31:24];
-assign r0_sel_c = data_in[23:16];
+assign r0_write = addr == 2 && state == LOAD && write;
+assign r0_sel_r = state == LOAD ? data_in[31:24] : ;
+assign r0_sel_c = state == LOAD ? data_in[23:16] : ;
 
 assign r1_in    = data_in[15:0];
-assign r1_write = addr === 3 && state == LOAD && write;
+assign r1_write = addr == 3 && state == LOAD && write;
 assign r1_sel_r = data_in[31:24];
 assign r1_sel_c = data_in[23:16];
 
 assign rb_in    = data_in[15:0];
-assign rb_write = addr === 4 && state == LOAD && write;
+assign rb_write = addr == 4 && state == LOAD && write;
 assign rb_sel   = data_in[23:16]; 
 
 assign d_in     = data_in[15:0];
-assign d_write  = addr === 5 && state == LOAD && write;
+assign d_write  = addr == 5 && state == LOAD && write;
 assign d_sel    = data_in[23:16];
 // ==========================================================
 
@@ -153,11 +153,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 
 			LOAD: begin
 				if(write && addr == 6) dense_bias <= data_in[15:0];
-				if(write && addr == 0) state <= READY;
-			end
-
-			READY: begin
-				state <= BUSY;
+				if(write && addr == 0) state <= BUSY;
 			end
 
 			BUSY: begin
