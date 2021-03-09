@@ -9,7 +9,7 @@ module rnn(
 	output logic [31:0] data_out
 	);
 
-typedef enum {LOAD, BUSY, DONE} state_t;
+typedef enum {LOAD, START, BUSY, DONE} state_t;
 state_t state;
 
 // ==========================================================
@@ -107,6 +107,26 @@ logic [15:0] dense_bias;
 
 
 
+
+// ==========================================================
+// Parallel matrix multiply controller
+// ==========================================================
+
+logic mm1_start, mm1_ready, mm1_busy;
+logic [ 1:0] mm1_sel_vec, mm1_sel_row; 
+logic [ 3:0] mm1_sel, mm1_sel_col;
+logic [15:0] mm1_out;
+
+matmul #(.DATA1_LEN_BITS(2), .DATA2_ROW_BITS(2), .DATA2_COL_BITS(4)) weight_multiplier(
+	.clk, .rst_n, .start(mm1_start), 
+	.data1(i_out), .data2(r0_out), .data_out(mm1_out),
+	.sel(mm1_sel),
+	.ready(mm1_ready), .busy(mm1_busy),
+	.sel_vec(mm1_sel_vec), .sel_row(mm1_sel_row), .sel_col(mm1_sel_col));
+// ==========================================================
+
+
+
 // ==========================================================
 // data routing 
 // IMPORTANT: data_in is used for data AND secondary addressing
@@ -118,12 +138,12 @@ logic [15:0] dense_bias;
 
 assign i_in     = data_in[15:0];
 assign i_write  = addr == 1 && state == LOAD && write;
-assign i_sel    = state == LOAD? data_in[23:16] : ;
+assign i_sel    = state == LOAD? data_in[23:16] : mm1_sel_vec;
 
 assign r0_in    = data_in[15:0];
 assign r0_write = addr == 2 && state == LOAD && write;
-assign r0_sel_r = state == LOAD ? data_in[31:24] : ;
-assign r0_sel_c = state == LOAD ? data_in[23:16] : ;
+assign r0_sel_r = state == LOAD ? data_in[31:24] : mm1_sel_row;
+assign r0_sel_c = state == LOAD ? data_in[23:16] : mm1_sel_col;
 
 assign r1_in    = data_in[15:0];
 assign r1_write = addr == 3 && state == LOAD && write;
@@ -153,11 +173,17 @@ always_ff @(posedge clk or negedge rst_n) begin
 
 			LOAD: begin
 				if(write && addr == 6) dense_bias <= data_in[15:0];
-				if(write && addr == 0) state <= BUSY;
+				if(write && addr == 0) begin
+					state <= START;
+				end
+			end
+
+			START:begin
+				state <= BUSY;
 			end
 
 			BUSY: begin
-				state <= DONE;
+				if(mm1_ready) state <= DONE;
 			end
 
 			DONE: begin
@@ -172,6 +198,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 	end
 end
 
+assign mm1_start = (state == START);
 
 
 endmodule : rnn

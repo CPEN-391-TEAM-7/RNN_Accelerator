@@ -120,9 +120,10 @@ module rnn_tb();
 		addr    <= 0;
 
 		@(negedge clk)
-		assert(dut.state === dut.state_t.BUSY);
+		write  <=0;
+		assert(dut.state === dut.START);
 
-
+		#50;
 		$stop;
 	end
 endmodule
