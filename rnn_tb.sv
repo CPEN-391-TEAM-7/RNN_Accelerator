@@ -145,6 +145,7 @@ module rnn_tb();
 		addr    <= 0;
 
 		@(negedge clk)
+
 		write  <=0;
 		assert(dut.state === dut.START);
 

@@ -54,6 +54,7 @@ module matmul #(
 					
 					if(sel_col == DATA2_COL_BITS-1) begin
 						if(sel_row == DATA1_LEN_BITS-1) state <= READY;
+
 						else begin
 							sel_row <= sel_row+1;
 							sel_col <= 0;
@@ -71,12 +72,12 @@ module matmul #(
 	assign result    = data2 * data1;
 	assign imm_write = (state == BUSY);
 	assign imm_in    = imm_out + result[15:0];
+
 	assign imm_sel   = (state == BUSY) ? sel_col : sel;
 
 	// reset automatically when waiting for new data
 	assign imm_reset = (state != CLEAR);
 	assign ready     = (state == READY);
-
 	assign data_out  = imm_out;
 
 endmodule

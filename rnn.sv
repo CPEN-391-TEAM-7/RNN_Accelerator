@@ -10,6 +10,7 @@ module rnn(
 	);
 
 typedef enum {LOAD, START, BUSY, BIAS, ACTIVATION ,DONE} state_t;
+
 state_t state;
 logic  [3:0] bias_sel;
 
@@ -112,6 +113,7 @@ logic [15:0] dense_bias;
 // ==========================================================
 // weight matrix multiply controller
 // ==========================================================
+
 logic mm1_start, mm1_ready, mm1_busy;
 logic [ 1:0] mm1_sel_vec, mm1_sel_row; 
 logic [ 3:0] mm1_sel, mm1_sel_col;
@@ -235,6 +237,5 @@ end
 
 assign mm1_start = (state == START);
 assign mm2_start = (state == START);
-
 
 endmodule : rnn
