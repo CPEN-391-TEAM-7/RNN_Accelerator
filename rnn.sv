@@ -215,16 +215,8 @@ always_ff @(posedge clk or negedge rst_n) begin
 			end
 
 			BIAS: begin
-				if(bias_sel == 3) state <= ACTIVATION;
+				if(bias_sel == 3) state <= LOAD;
 				else bias_sel <= bias_sel + 1;
-			end
-
-			ACTIVATION: begin
-				if(write && addr == 0) state <= DONE;
-			end
-
-			DONE: begin
-				if(write && addr == 0) state <= LOAD;
 			end
 
 			default: begin

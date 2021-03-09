@@ -21,7 +21,8 @@ module rnn_tb();
 
 	rnn dut(.*);
 
-	logic [15:0] embed_v [1:0] = {-3,2};
+	logic [15:0] embed_v  [0:1] = {2,-3};
+	logic [15:0] embed_v2 [0:1] = {-8,3};
 
 	logic [15:0] rnn0_m[0:1][0:3];
 	assign rnn0_m[0] = { 2,-10,-10, 3};
@@ -167,14 +168,64 @@ module rnn_tb();
 		assert(dut.recurrent_multiplier.imm_vec.vector[2] === 0);
 		assert(dut.recurrent_multiplier.imm_vec.vector[3] === 0);
 
-		wait(dut.state === dut.ACTIVATION);
+		wait(dut.state === dut.LOAD);
 		assert(dut.hidden.vector[0] === 16'(-16));
 		assert(dut.hidden.vector[1] === 16'(-49));
 		assert(dut.hidden.vector[2] === 16'(-57));
 		assert(dut.hidden.vector[3] === 16'(2));
+		#10;
+
+		// ==========================================================
+		// Second input test
+		// ==========================================================
+		@(negedge clk)
+		write   <= 1;
+		addr    <= 1;
+		data_in <= {16'b0,embed_v2[0]};
+		@(negedge clk)
+		assert (dut.input_char.vector[0] === embed_v2[0]);
+		data_in <= {16'b1,embed_v2[1]};
+
+		@(negedge clk)
+		assert (dut.input_char.vector[1] === embed_v2[1]);
+		write <=0;
+		#10;
 
 
-		#50;
+		// ==========================================================
+		// Full multiply test
+		// ==========================================================
+		@(negedge clk)
+		write   <= 1;
+		addr    <= 0;
+
+		@(negedge clk)
+
+		write  <=0;
+
+
+		// ==========================================================
+		// Full multiply test results
+		// ==========================================================
+		@(posedge dut.weight_multiplier.ready)
+		assert(dut.weight_multiplier.imm_vec.vector[0] === 16'(2));
+		assert(dut.weight_multiplier.imm_vec.vector[1] === 16'(107));
+		assert(dut.weight_multiplier.imm_vec.vector[2] === 16'(116));
+		assert(dut.weight_multiplier.imm_vec.vector[3] === 16'(-21));
+
+		@(posedge dut.recurrent_multiplier.ready)
+		assert(dut.recurrent_multiplier.imm_vec.vector[0] === 16'( -169));
+		assert(dut.recurrent_multiplier.imm_vec.vector[1] === 16'(-1077));
+		assert(dut.recurrent_multiplier.imm_vec.vector[2] === 16'(   13));
+		assert(dut.recurrent_multiplier.imm_vec.vector[3] === 16'( 1024));
+
+		wait(dut.state === dut.LOAD);
+		assert(dut.hidden.vector[0] === 16'(-169));
+		assert(dut.hidden.vector[1] === 16'(-972));
+		assert(dut.hidden.vector[2] === 16'( 128));
+		assert(dut.hidden.vector[3] === 16'(1002));
+		#10;
+
 		$stop;
 	end
 endmodule
