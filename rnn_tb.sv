@@ -17,6 +17,8 @@ module rnn_tb();
 	integer c1;
 	integer s1;
 
+	integer rb;
+
 	rnn dut(.*);
 
 	logic [15:0] embed_v [1:0] = {-3,2};
@@ -31,6 +33,7 @@ module rnn_tb();
 	assign rnn1_m[2] = {  4, 11,  3, -12};
 	assign rnn1_m[3] = {-11, -4,  3,  -1};
 
+	logic [15:0] rnn_b [0:3] = {-2,-2,-1,-1};
 
 	always begin
 		#1 clk = 0;
@@ -115,14 +118,37 @@ module rnn_tb();
 		// END RNN recurrent Matrix input test
 		// ==========================================================
 
+
+
+		// ==========================================================
+		// START RNN bias input test
+		// ==========================================================
+		@(negedge clk)
+		write   <= 1;
+		addr    <= 4;
+
+		for (rb=0; rb< 4; rb=rb+1) begin
+			data_in <= {rb[15:0], rnn_b[rb]};
+			@(negedge clk)
+			assert(dut.rnn_bias.vector[rb] === rnn_b[rb]);
+		end
+
+		write <= 0;
+		#10;
+		// ==========================================================
+		// END RNN bias input test
+		// ==========================================================
+
+
 		@(negedge clk)
 		write   <= 1;
 		addr    <= 0;
 
 		@(negedge clk)
-		assert(dut.state === dut.state_t.BUSY);
+		write  <=0;
+		assert(dut.state === dut.START);
 
-
+		#50;
 		$stop;
 	end
 endmodule
