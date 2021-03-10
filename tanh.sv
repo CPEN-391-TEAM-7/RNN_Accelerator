@@ -28,27 +28,3 @@ always_comb begin
 end
 
 endmodule
-
-module tanh_tb();
-
-	logic [15:0] in, out;
-	tanh dut(.*);
-
-	initial begin
-
-		in = 16'b1101_000000000000;
-		#5;
-		in = 16'b1110_000000000000;
-		#5;
-		in = 16'b1111_000000000000;
-		#5;
-		in = 16'b0000_000000000000;
-		#5;
-		in = 16'b0001_000000000000;
-		#5;
-		in = 16'b0010_000000000000;
-		#5;
-		in = 16'b0011_000000000000;
-		#5;
-	end
-endmodule
