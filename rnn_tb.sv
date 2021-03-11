@@ -9,15 +9,21 @@ module rnn_tb();
 	logic [31:0] data_in;
 	logic [31:0] data_out;
 
+	// for loop params for rnn matrix 0
 	integer r0;
 	integer c0;
 	integer s0;
 
+	// for loop params for rnn matrix 1
 	integer r1;
 	integer c1;
 	integer s1;
 
+	// for loop params for rnn bias
 	integer rb;
+
+	// for loop params for dense layer vector
+	integer dv;
 
 	rnn dut(.*);
 
@@ -36,6 +42,11 @@ module rnn_tb();
 
 	logic [15:0] rnn_b [0:3] = {-2,-2,-1,-1};
 
+	logic [15:0] dense_v [0:3] = {-13,-12,-10, 5};
+
+	logic [15:0] dense_b;
+	assign dense_b = 16'd4;
+
 	always begin
 		#1 clk = 0;
 		#1 clk = 1;
@@ -49,6 +60,7 @@ module rnn_tb();
 		write   <= 0;
 		addr    <= 0;
 		data_in <= 0;
+		read    <= 0;
 		#10;
 		rst_n   <= 1;
 		#10;
@@ -141,6 +153,50 @@ module rnn_tb();
 		// ==========================================================
 
 
+
+		// ==========================================================
+		// START Dense Layer input test
+		// ==========================================================
+		@(negedge clk)
+		write   <= 1;
+		addr    <= 5;
+
+		for (dv=0; dv< 4; dv=dv+1) begin
+			data_in <= {dv[15:0], dense_v[dv]};
+			@(negedge clk)
+			assert(dut.dense.vector[dv] === dense_v[dv]);
+		end
+
+		write <= 0;
+		#10;
+		// ==========================================================
+		// END Dense Layer test
+		// ==========================================================
+
+
+
+		// ==========================================================
+		// START Dense bias input test
+		// ==========================================================
+
+		@(negedge clk)
+		write   <= 1;
+		addr    <= 6;
+
+		data_in <= {16'b0, dense_b};
+		@(negedge clk)
+		assert(dut.dense_bias === dense_b);
+
+		write <= 0;
+		#10;
+
+
+
+
+		// ==========================================================
+		// Start RNN test
+		// ==========================================================
+
 		@(negedge clk)
 		write   <= 1;
 		addr    <= 0;
@@ -203,7 +259,6 @@ module rnn_tb();
 
 		write  <=0;
 
-
 		// ==========================================================
 		// Full multiply test results
 		// ==========================================================
@@ -225,6 +280,23 @@ module rnn_tb();
 		assert(dut.hidden.vector[2] === 16'( 128));
 		assert(dut.hidden.vector[3] === 16'(1002));
 		#10;
+
+		// ==========================================================
+		// Dense multiply and final result test
+		// ==========================================================
+		@(negedge clk)
+		write   <= 1;
+		addr    <= 7;
+
+		@(negedge clk)
+
+		write  <=0;
+
+		wait(dut.state === dut.VALID);
+
+		assert(dut.result === 16'd17595);
+
+		#20;
 
 		$stop;
 	end

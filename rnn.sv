@@ -9,10 +9,16 @@ module rnn(
 	output logic [31:0] data_out
 	);
 
-typedef enum {LOAD, START, BUSY, BIAS, ACTIVATION ,DONE} state_t;
 
+
+// ==========================================================
+// Top level signals
+// ==========================================================
+
+typedef enum {LOAD, START, BUSY, BIAS, DENSE, VALID} state_t;
 state_t state;
-logic  [3:0] bias_sel;
+logic  [ 3:0] bias_sel, dense_sel;
+logic  [15:0] result, half_data_out;
 
 // ==========================================================
 // input vector
@@ -113,7 +119,6 @@ logic [15:0] dense_bias;
 // ==========================================================
 // weight matrix multiply controller
 // ==========================================================
-
 logic mm1_start, mm1_ready, mm1_busy;
 logic [ 1:0] mm1_sel_vec, mm1_sel_row; 
 logic [ 3:0] mm1_sel, mm1_sel_col;
@@ -148,6 +153,14 @@ matmul #(.DATA1_LEN_BITS(4), .DATA2_ROW_BITS(4), .DATA2_COL_BITS(4)) recurrent_m
 
 
 // ==========================================================
+// Tanh activation calculator (Single Cycle!)
+// ==========================================================
+logic [15:0] tanh_in, tanh_out;
+tanh activation(.in(tanh_in), .out(tanh_out));
+// ==========================================================
+
+
+// ==========================================================
 // data routing 
 // IMPORTANT: data_in is used for data AND secondary addressing
 // 1. [ 15:0] represent Q16 fixed point numbers
@@ -161,9 +174,17 @@ assign i_write  = addr == 1 && state == LOAD && write;
 assign i_sel    = state == LOAD? data_in[23:16] : mm1_sel_vec;
 
 // setup only for multiplier for now
+// TODO: Renable tanh when using fxp data
+//***********************************************************
+// assign tanh_in  = rb_out + mm1_out + mm2_out;
+// assign h_in     = tanh_out;
+//***********************************************************
 assign h_in     = rb_out + mm1_out + mm2_out;
 assign h_write  = (state == BIAS);
-assign h_sel    = (state == BIAS) ? bias_sel :mm2_sel_vec;
+
+assign h_sel    = (state == BIAS)  ? bias_sel  :
+				  (state == DENSE) ? dense_sel :
+				  mm2_sel_vec;
 
 assign r0_in    = data_in[15:0];
 assign r0_write = addr == 2 && state == LOAD && write;
@@ -181,7 +202,7 @@ assign rb_sel   = state == BIAS? bias_sel : data_in[23:16];
 
 assign d_in     = data_in[15:0];
 assign d_write  = addr == 5 && state == LOAD && write;
-assign d_sel    = data_in[23:16];
+assign d_sel    = state == DENSE ? dense_sel :data_in[23:16];
 // ==========================================================
 
 
@@ -192,21 +213,27 @@ assign d_sel    = data_in[23:16];
 always_ff @(posedge clk or negedge rst_n) begin
 	if(~rst_n) begin
 		dense_bias <= 15'b0;
+		result     <= 15'b0;
 		state      <= LOAD;
 	end else begin
 		case(state)
 
+			// Used to load all parameters and inputs into FPGA storage elements
 			LOAD: begin
-				if(write && addr == 6) dense_bias <= data_in[15:0];
-				if(write && addr == 0) begin
-					state <= START;
+				if(write && addr == 6) dense_bias <= data_in[15:0];	// load dense bias (single value only)
+				if(write && addr == 0) state <= START;				// start RNN calculation
+				if(write && addr == 7) begin
+					dense_sel <= 0;
+					state <= DENSE;
 				end
 			end
 
+			// Single clock cycle state used to start matrix multipliers
 			START:begin
 				state <= BUSY;
 			end
 
+			// Wait for matrix multiplies to finish
 			BUSY: begin
 				if(mm1_ready && mm2_ready) begin
 					bias_sel <= 0;
@@ -214,11 +241,33 @@ always_ff @(posedge clk or negedge rst_n) begin
 				end
 			end
 
+
+			// Add recurrent bias and make new hidden state
 			BIAS: begin
 				if(bias_sel == 3) state <= LOAD;
 				else bias_sel <= bias_sel + 1;
 			end
 
+			// Dot product of hidden state and dense layer
+			// Also add bias and go to final state
+			DENSE: begin
+				if(dense_sel == 4) begin // needs extra clock cycle compared to bias add
+					state  <= VALID;
+					result <= result + dense_bias;
+				end
+				else begin 
+					dense_sel <= dense_sel + 1;
+					result <= result + d_out*h_out;
+				end
+			end
+
+			// Wait for result to be read before accepting input again
+			VALID: begin
+				if(read && addr == 7) state <= LOAD;
+			end
+
+			// if state is ever corrupted go to load?
+			// should never happen
 			default: begin
 				state <= LOAD;
 			end
@@ -227,7 +276,20 @@ always_ff @(posedge clk or negedge rst_n) begin
 	end
 end
 
+// signal start to matrix multipliers for 1 clk cycle
 assign mm1_start = (state == START);
 assign mm2_start = (state == START);
+
+// data out selector
+always_comb begin
+	case (addr)
+		7: half_data_out = result;				// output final result after applying dense matrix + bias
+		0: half_data_out = (state == VALID);	// check if RNN is ready to load
+		default: half_data_out = 16'b0;			// zero otherwise
+	endcase
+end
+
+// output sign extended data
+assign data_out = read ? {{16{half_data_out[15]}},half_data_out} : 32'b0;
 
 endmodule : rnn
