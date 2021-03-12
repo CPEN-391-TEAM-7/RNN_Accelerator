@@ -5,12 +5,12 @@ module tanh( input  logic signed [15:0] in,
 logic 	  sign;
 logic [15:0] x,y;
 
-`define p0_25 16'b0000_010000000000
-`define p0_5  16'b0000_100000000000
-`define p0_7  16'b0000_101100110011
-`define p1_0  16'b0001_000000000000
-`define p1_2  16'b0001_001100110011
-`define p2_4  16'b0010_011001100110
+`define p0_25 16'b00000000_01000000
+`define p0_5  16'b00000000_10000000
+`define p0_7  16'b00000000_10110011
+`define p1_0  16'b00000001_00000000
+`define p1_2  16'b00000001_00110011
+`define p2_4  16'b00000010_01100110
 
 always_comb begin
 
