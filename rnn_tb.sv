@@ -24,6 +24,7 @@ module rnn_tb();
 	// ==========================================================
 	// rnn bias rom
 	// ==========================================================
+	integer rb;
 	rnn_bias	rnn_bias_rom();
 
 
@@ -152,8 +153,7 @@ module rnn_tb();
 
 		write <= 0;
 		#10;
-		$stop;
-		/*
+
 		// ==========================================================
 		// END RNN recurrent Matrix input test
 		// ==========================================================
@@ -167,14 +167,16 @@ module rnn_tb();
 		write   <= 1;
 		addr    <= 4;
 
-		for (rb=0; rb< 4; rb=rb+1) begin
-			data_in <= {rb[15:0], rnn_b[rb]};
+		for (rb=0; rb< 32; rb=rb+1) begin
+			data_in <= {rb[15:0], rnn_bias_rom.RB[rb]};
 			@(negedge clk)
-			assert(dut.rnn_bias.vector[rb] === rnn_b[rb]);
+			assert(dut.rnn_bias.vector[rb] === rnn_bias_rom.RB[rb]);
 		end
 
 		write <= 0;
 		#10;
+		$stop;
+		/*
 		// ==========================================================
 		// END RNN bias input test
 		// ==========================================================
