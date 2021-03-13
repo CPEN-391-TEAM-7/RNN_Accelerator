@@ -10,12 +10,14 @@ module rnn_tb();
 	// ==========================================================
 	// rnn weight matrix rom setup
 	// ==========================================================
+	integer r0, c0;
 	rnn_weights     rnn_weights_rom();
 
 
 	// ==========================================================
 	// recurrent rnn matrix rom setup
 	// ==========================================================
+	integer r1, c1;
 	rnn_recurrent rnn_recurrent_rom();
 
 
@@ -68,6 +70,11 @@ module rnn_tb();
 
 		@(negedge clk)
 
+		assert(dut.input_char.vector[0] == embedding_rom.E[char][0]);
+		assert(dut.input_char.vector[1] == embedding_rom.E[char][1]);
+		assert(dut.input_char.vector[2] == embedding_rom.E[char][2]);
+		assert(dut.input_char.vector[3] == embedding_rom.E[char][3]);
+
 		write <=0;
 
 	endtask 
@@ -98,15 +105,8 @@ module rnn_tb();
 		// ==========================================================
 		// START input vector test
 		// ==========================================================
-
-
-		load_char(0);
-
+		load_char(0); // has assert statements built in
 		#10;
-
-		$stop;
-
-		/*
 		// ==========================================================
 		// END input vector test
 		// ==========================================================
@@ -122,9 +122,9 @@ module rnn_tb();
 
 		for (r0=0; r0< 4; r0=r0+1) begin
 			for (c0=0; c0< 32; c0=c0+1) begin
-				data_in <= {r0[7:0], c0[7:0], rnn0_m[r0][c0]};
+				data_in <= {r0[7:0], c0[7:0], rnn_weights_rom.W[r0][c0]};
 				@(negedge clk)
-				assert(dut.rnn_0.matrix[r0][c0] === rnn0_m[r0][c0]);
+				assert(dut.rnn_0.matrix[r0][c0] === rnn_weights_rom.W[r0][c0]);
 			end
 		end
 
@@ -144,15 +144,16 @@ module rnn_tb();
 
 		for (r1=0; r1< 32; r1=r1+1) begin
 			for (c1=0; c1< 32; c1=c1+1) begin
-				data_in <= {r1[7:0], c1[7:0], rnn1_m[r1][c1]};
+				data_in <= {r1[7:0], c1[7:0], rnn_recurrent_rom.R[r1][c1]};
 				@(negedge clk)
-				assert(dut.rnn_1.matrix[r1][c1] === rnn1_m[r1][c1]);
+				assert(dut.rnn_1.matrix[r1][c1] === rnn_recurrent_rom.R[r1][c1]);
 			end
 		end
 
 		write <= 0;
 		#10;
-
+		$stop;
+		/*
 		// ==========================================================
 		// END RNN recurrent Matrix input test
 		// ==========================================================
