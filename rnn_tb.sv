@@ -31,6 +31,7 @@ module rnn_tb();
 	// ==========================================================
 	// dense rom setup
 	// ==========================================================
+	integer dv;
 	dense dense_rom();
 
 
@@ -175,8 +176,7 @@ module rnn_tb();
 
 		write <= 0;
 		#10;
-		$stop;
-		/*
+
 		// ==========================================================
 		// END RNN bias input test
 		// ==========================================================
@@ -190,14 +190,15 @@ module rnn_tb();
 		write   <= 1;
 		addr    <= 5;
 
-		for (dv=0; dv< 4; dv=dv+1) begin
-			data_in <= {dv[15:0], dense_v[dv]};
+		for (dv=0; dv< 32; dv=dv+1) begin
+			data_in <= {dv[15:0], dense_rom.D[dv]};
 			@(negedge clk)
-			assert(dut.dense.vector[dv] === dense_v[dv]);
+			assert(dut.dense.vector[dv] === dense_rom.D[dv]);
 		end
 
 		write <= 0;
 		#10;
+
 		// ==========================================================
 		// END Dense Layer test
 		// ==========================================================
@@ -220,7 +221,8 @@ module rnn_tb();
 		#10;
 
 
-
+		$stop;
+		/*
 
 		// ==========================================================
 		// Start RNN test
