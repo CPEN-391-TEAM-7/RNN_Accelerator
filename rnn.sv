@@ -20,7 +20,8 @@ module rnn(
 typedef enum {LOAD, START, BUSY, BIAS, DENSE, VALID} state_t;
 state_t state;
 
-logic           [15:0] result, half_data_out;
+logic           [15:0] half_data_out, result;
+logic           [31:0] multiply_holder;
 logic  [`RNN_BITS-1:0] bias_sel, dense_sel;
 
 
@@ -181,15 +182,11 @@ assign i_in     = data_in[15:0];
 assign i_write  = addr == 1 && state == LOAD && write;
 assign i_sel    = state == LOAD? data_in[23:16] : mm1_sel_vec;
 
-// setup only for multiplier for now
-// TODO: Renable tanh when using fxp data
-//***********************************************************
-// assign tanh_in  = rb_out + mm1_out + mm2_out;
-// assign h_in     = tanh_out;
-//***********************************************************
-assign h_in     = rb_out + mm1_out + mm2_out;
-assign h_write  = (state == BIAS);
 
+
+assign tanh_in  = rb_out + mm1_out + mm2_out;
+assign h_in     = tanh_out;
+assign h_write  = (state == BIAS);
 assign h_sel    = (state == BIAS)  ? bias_sel  :
 				  (state == DENSE) ? dense_sel :
 				  mm2_sel_vec;
@@ -265,7 +262,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 				end
 				else begin 
 					dense_sel <= dense_sel + 1;
-					result <= result + d_out*h_out;
+					result <= result + multiply_holder[15:0]; // shift by number of decimal bits
 				end
 			end
 
@@ -299,5 +296,10 @@ end
 
 // output sign extended data
 assign data_out = read ? {{16{half_data_out[15]}},half_data_out} : 32'b0;
+
+always_comb begin : proc_
+ 	multiply_holder = d_out*h_out;
+ 	multiply_holder = multiply_holder >> 8;
+ end 
 
 endmodule : rnn
