@@ -215,14 +215,12 @@ module rnn_tb();
 
 		data_in <= {16'b0, dense_b};
 		@(negedge clk)
-		assert(dut.dense_bias === dense_b);
-
+		assert(dut.dense_bias == dense_b);
 		write <= 0;
 		#10;
 
 
-		$stop;
-		/*
+
 
 		// ==========================================================
 		// Start RNN test
@@ -241,41 +239,24 @@ module rnn_tb();
 		// Weight matrix multiply result test
 		// ==========================================================
 		@(posedge dut.weight_multiplier.ready)
-		assert(dut.weight_multiplier.imm_vec.vector[0] === 16'(-14));
-		assert(dut.weight_multiplier.imm_vec.vector[1] === 16'(-47));
-		assert(dut.weight_multiplier.imm_vec.vector[2] === 16'(-56));
-		assert(dut.weight_multiplier.imm_vec.vector[3] === 16'(3));
 
 		// ==========================================================
 		// Recurrent Matrix multiply result test
 		// ==========================================================
 		@(posedge dut.recurrent_multiplier.ready)
-		assert(dut.recurrent_multiplier.imm_vec.vector[0] === 0);
-		assert(dut.recurrent_multiplier.imm_vec.vector[1] === 0);
-		assert(dut.recurrent_multiplier.imm_vec.vector[2] === 0);
-		assert(dut.recurrent_multiplier.imm_vec.vector[3] === 0);
+
 
 		wait(dut.state === dut.LOAD);
-		assert(dut.hidden.vector[0] === 16'(-16));
-		assert(dut.hidden.vector[1] === 16'(-49));
-		assert(dut.hidden.vector[2] === 16'(-57));
-		assert(dut.hidden.vector[3] === 16'(2));
+
+
 		#10;
 
 		// ==========================================================
 		// Second input test
 		// ==========================================================
-		@(negedge clk)
-		write   <= 1;
-		addr    <= 1;
-		data_in <= {16'b0,embed_v2[0]};
-		@(negedge clk)
-		assert (dut.input_char.vector[0] === embed_v2[0]);
-		data_in <= {16'b1,embed_v2[1]};
 
-		@(negedge clk)
-		assert (dut.input_char.vector[1] === embed_v2[1]);
-		write <=0;
+		load_char(1);
+
 		#10;
 
 
@@ -294,22 +275,14 @@ module rnn_tb();
 		// Full multiply test results
 		// ==========================================================
 		@(posedge dut.weight_multiplier.ready)
-		assert(dut.weight_multiplier.imm_vec.vector[0] === 16'(2));
-		assert(dut.weight_multiplier.imm_vec.vector[1] === 16'(107));
-		assert(dut.weight_multiplier.imm_vec.vector[2] === 16'(116));
-		assert(dut.weight_multiplier.imm_vec.vector[3] === 16'(-21));
+		//TODO get actual asserts
 
 		@(posedge dut.recurrent_multiplier.ready)
-		assert(dut.recurrent_multiplier.imm_vec.vector[0] === 16'( -169));
-		assert(dut.recurrent_multiplier.imm_vec.vector[1] === 16'(-1077));
-		assert(dut.recurrent_multiplier.imm_vec.vector[2] === 16'(   13));
-		assert(dut.recurrent_multiplier.imm_vec.vector[3] === 16'( 1024));
+		//TODO get actual asserts
 
 		wait(dut.state === dut.LOAD);
-		assert(dut.hidden.vector[0] === 16'(-169));
-		assert(dut.hidden.vector[1] === 16'(-972));
-		assert(dut.hidden.vector[2] === 16'( 128));
-		assert(dut.hidden.vector[3] === 16'(1002));
+		//TODO get actual asserts
+
 		#10;
 
 		// ==========================================================
@@ -325,13 +298,11 @@ module rnn_tb();
 
 		wait(dut.state === dut.VALID);
 
-		assert(dut.result === 16'd17595);
+		//TODO get actual asserts from Jingyuan
 
 		#20;
 
 		$stop;
-
-		*/
 
 	end
 endmodule

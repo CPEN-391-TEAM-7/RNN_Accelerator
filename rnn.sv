@@ -117,7 +117,7 @@ tensor_1d #(.LEN(`RNN_BITS)) dense(
 	.sel(d_sel), .param_in(d_in), .param_out(d_out));
 
 // dense layer bias scalar
-logic [`RNN_BITS-1:0] dense_bias;
+logic [15:0] dense_bias;
 // ==========================================================
 
 
@@ -249,14 +249,14 @@ always_ff @(posedge clk or negedge rst_n) begin
 
 			// Add recurrent bias and make new hidden state
 			BIAS: begin
-				if(bias_sel == `RNN_BITS-1) state <= LOAD;
+				if(bias_sel == (1 <<`RNN_BITS)-1) state <= LOAD;
 				else bias_sel <= bias_sel + 1;
 			end
 
 			// Dot product of hidden state and dense layer
 			// Also add bias and go to final state
 			DENSE: begin
-				if(dense_sel == `RNN_BITS) begin // needs extra clock cycle compared to bias add
+				if(dense_sel == (1 << `RNN_BITS)-1) begin // needs extra clock cycle compared to bias add
 					state  <= VALID;
 					result <= result + dense_bias;
 				end

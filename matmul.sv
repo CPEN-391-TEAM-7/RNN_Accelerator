@@ -52,8 +52,8 @@ module matmul #(
 
 				BUSY: begin
 					
-					if(sel_col == DATA2_COL_BITS-1) begin
-						if(sel_row == DATA1_LEN_BITS-1) state <= READY;
+					if(sel_col == (1 << DATA2_COL_BITS)-1) begin
+						if(sel_row == (1 << DATA1_LEN_BITS)-1) state <= READY;
 
 						else begin
 							sel_row <= sel_row+1;
