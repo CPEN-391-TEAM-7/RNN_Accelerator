@@ -11,7 +11,6 @@ module matmul #(
 	input  logic [DATA2_COL_BITS-1:0] sel,
 
 	output logic 					  ready,
-	output logic                      busy,
 	output logic [15:0] 			  data_out,
 	output logic [DATA1_LEN_BITS-1:0] sel_vec,
 	output logic [DATA2_ROW_BITS-1:0] sel_row,

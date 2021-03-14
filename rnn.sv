@@ -4,7 +4,7 @@ module rnn(
 	input  logic 		rst_n,
 	input  logic 		read,
 	input  logic		write,
-	input  logic [31:0] addr,
+	input  logic [ 2:0] addr,
 	input  logic [31:0]	data_in,
 	output logic [31:0] data_out
 	);
@@ -126,7 +126,7 @@ logic [15:0] dense_bias;
 // ==========================================================
 // weight matrix multiply controller
 // ==========================================================
-logic                  mm1_start, mm1_ready, mm1_busy;
+logic                  mm1_start, mm1_ready;
 logic           [15:0] mm1_out;
 logic [ `EMB_BITS-1:0] mm1_sel_vec, mm1_sel_row; 
 logic [ `RNN_BITS-1:0] mm1_sel, mm1_sel_col;
@@ -136,7 +136,7 @@ matmul #(.DATA1_LEN_BITS(`EMB_BITS), .DATA2_ROW_BITS(`EMB_BITS), .DATA2_COL_BITS
 	.clk, .rst_n, .start(mm1_start), 
 	.data1(i_out), .data2(r0_out), .data_out(mm1_out),
 	.sel(bias_sel),
-	.ready(mm1_ready), .busy(mm1_busy),
+	.ready(mm1_ready),
 	.sel_vec(mm1_sel_vec), .sel_row(mm1_sel_row), .sel_col(mm1_sel_col));
 // ==========================================================
 
@@ -145,7 +145,7 @@ matmul #(.DATA1_LEN_BITS(`EMB_BITS), .DATA2_ROW_BITS(`EMB_BITS), .DATA2_COL_BITS
 // ==========================================================
 // Recurrent matrix multiply controller
 // ==========================================================
-logic                  mm2_start, mm2_ready, mm2_busy;
+logic                  mm2_start, mm2_ready;
 logic           [15:0] mm2_out;
 logic [ `RNN_BITS-1:0] mm2_sel_vec, mm2_sel_row; 
 logic [ `RNN_BITS-1:0] mm2_sel_col;
@@ -155,7 +155,7 @@ matmul #(.DATA1_LEN_BITS(`RNN_BITS), .DATA2_ROW_BITS(`RNN_BITS), .DATA2_COL_BITS
 	.clk, .rst_n, .start(mm2_start), 
 	.data1(h_out), .data2(r1_out), .data_out(mm2_out),
 	.sel(bias_sel),
-	.ready(mm2_ready), .busy(mm2_busy),
+	.ready(mm2_ready),
 	.sel_vec(mm2_sel_vec), .sel_row(mm2_sel_row), .sel_col(mm2_sel_col));
 // ==========================================================
 
@@ -289,6 +289,9 @@ assign mm2_start = (state == START);
 always_comb begin
 	case (addr)
 		7: half_data_out = result;				// output final result after applying dense matrix + bias
+		3: half_data_out = 16'hBEEF;
+		2: half_data_out = 16'hDEAD;
+		1: half_data_out = (state === LOAD);		
 		0: half_data_out = (state == VALID);	// check if RNN is ready to load
 		default: half_data_out = 16'b0;			// zero otherwise
 	endcase
