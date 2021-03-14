@@ -46,12 +46,12 @@ tensor_1d #(.LEN(`EMB_BITS)) input_char(
 // hidden state tensor module
 // Will be rewritten after each char
 // ==========================================================
-logic                 h_write;
+logic                 h_write, h_clr;
 logic          [15:0] h_in, h_out;
 logic [`RNN_BITS-1:0] h_sel;
 
 tensor_1d #(.LEN(`RNN_BITS)) hidden(
-	.clk, .rst_n,
+	.clk, .rst_n(rst_n && h_clr),
 	.write(h_write), .sel(h_sel), 
 	.param_in(h_in), .param_out(h_out));
 // ==========================================================
@@ -268,7 +268,12 @@ always_ff @(posedge clk or negedge rst_n) begin
 
 			// Wait for result to be read before accepting input again
 			VALID: begin
-				if(read && addr == 7) state <= LOAD;
+				if(read && addr == 7) state <= CLEAR;
+			end
+
+			// Clear hidden state after reading result
+			CLEAR: begin
+				state <= LOAD;
 			end
 
 			// if state is ever corrupted go to load?
@@ -284,6 +289,9 @@ end
 // signal start to matrix multipliers for 1 clk cycle
 assign mm1_start = (state == START);
 assign mm2_start = (state == START);
+
+// clear the hidden state using reset
+assign h_clr = (state != CLEAR);
 
 // data out selector
 always_comb begin

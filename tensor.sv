@@ -18,7 +18,6 @@ integer i;
 integer j;
 always_ff @(posedge clk or negedge rst_n) begin
 	if(~rst_n) begin
-
 		for(i = 0; i < (1 << ROW_BITS); i=i+1) begin
 			for (j = 0; j< (1 << COL_BITS); j=j+1) begin
 				matrix[i][j] <= 0;
