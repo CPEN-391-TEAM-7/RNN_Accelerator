@@ -70,7 +70,7 @@ module matmul #(
 
 	always_comb begin : proc_
 		result    = data2 * data1;
-		result    = result >> 8;
+		result    = result >>> 8;
 	end
 
 	assign imm_write = (state == BUSY);

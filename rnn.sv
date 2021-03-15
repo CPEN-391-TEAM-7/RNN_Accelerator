@@ -313,7 +313,7 @@ assign data_out = read ? {{16{half_data_out[15]}},half_data_out} : 32'b0;
 
 always_comb begin : proc_
  	multiply_holder = d_out*h_out;
- 	multiply_holder = multiply_holder >> 8;
+ 	multiply_holder = multiply_holder >>> 8;
  end 
 
 endmodule : rnn
