@@ -20,7 +20,8 @@ module rnn(
 typedef enum {LOAD, START, BUSY, BIAS, DENSE, VALID, CLEAR} state_t;
 state_t state;
 
-logic           [15:0] half_data_out, result;
+logic signed    [15:0] result;
+logic           [15:0] half_data_out;
 logic           [31:0] multiply_holder;
 logic  [`RNN_BITS-1:0] bias_sel, dense_sel;
 
@@ -298,9 +299,10 @@ assign h_clr = (state != CLEAR);
 always_comb begin
 	case (addr)
 		7: half_data_out = result;				// output final result after applying dense matrix + bias
+		4: half_data_out = (result >= 0);
 		3: half_data_out = 16'hBEEF;
 		2: half_data_out = 16'hDEAD;
-		1: half_data_out = (state === LOAD);		
+		1: half_data_out = (state == LOAD);		
 		0: half_data_out = (state == VALID);	// check if RNN is ready to load
 		default: half_data_out = 16'b0;			// zero otherwise
 	endcase

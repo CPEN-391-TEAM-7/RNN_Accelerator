@@ -297,6 +297,7 @@ module rnn_tb();
 		write  <=0;
 
 		wait(dut.state === dut.VALID);
+		assert(dut.result >= 0);
 
 		// ==========================================================
 		// Test hidden state clearing
@@ -328,7 +329,7 @@ module rnn_tb();
 		assert(dut.result === 0);
 
 		wait(dut.state === dut.VALID);
-
+		assert(dut.result < 0);
 
 
 		#20;
