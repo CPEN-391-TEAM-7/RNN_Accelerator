@@ -17,7 +17,7 @@ module rnn(
 `define EMB_BITS 2
 `define RNN_BITS 5
 
-typedef enum {LOAD, START, BUSY, BIAS, DENSE, VALID} state_t;
+typedef enum {LOAD, START, BUSY, BIAS, DENSE, VALID, CLEAR} state_t;
 state_t state;
 
 logic           [15:0] half_data_out, result;

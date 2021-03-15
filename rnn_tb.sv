@@ -42,7 +42,7 @@ module rnn_tb();
 	logic 		 rst_n;
 	logic 		 read;
 	logic		 write;
-	logic [31:0] addr;
+	logic  [2:0] addr;
 	logic [31:0] data_in;
 	logic [31:0] data_out;
 
@@ -52,7 +52,7 @@ module rnn_tb();
 	logic [15:0] dense_b;
 	assign dense_b = 16'b1111111111110010;
 
-
+	integer h;
 
 	// ==========================================================
 	// Task used to load easily embedding vectors 
@@ -298,7 +298,17 @@ module rnn_tb();
 
 		wait(dut.state === dut.VALID);
 
-		//TODO get actual asserts from Jingyuan
+		@(negedge clk)
+		read <= 1;
+
+		wait(dut.state === dut.CLEAR);
+		read <= 0;
+
+		wait(dut.state === dut.LOAD);
+
+		for (h = 0; h<32; h=h+1) begin
+			assert(dut.hidden.vector[h] === 0);
+		end
 
 		#20;
 
