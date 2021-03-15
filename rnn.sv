@@ -228,6 +228,7 @@ always_ff @(posedge clk or negedge rst_n) begin
 				if(write && addr == 6) dense_bias <= data_in[15:0];	// load dense bias (single value only)
 				if(write && addr == 0) state <= START;				// start RNN calculation
 				if(write && addr == 7) begin
+					result    <= 0;
 					dense_sel <= 0;
 					state <= DENSE;
 				end

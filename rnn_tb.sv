@@ -298,6 +298,10 @@ module rnn_tb();
 
 		wait(dut.state === dut.VALID);
 
+		// ==========================================================
+		// Test hidden state clearing
+		// ==========================================================
+
 		@(negedge clk)
 		read <= 1;
 
@@ -309,6 +313,23 @@ module rnn_tb();
 		for (h = 0; h<32; h=h+1) begin
 			assert(dut.hidden.vector[h] === 0);
 		end
+
+		// ==========================================================
+		// Test result clearing
+		// ==========================================================
+		@(negedge clk)
+		write   <= 1;
+		addr    <= 7;
+
+		@(negedge clk)
+		write  <=0;
+
+		wait(dut.state === dut.DENSE);
+		assert(dut.result === 0);
+
+		wait(dut.state === dut.VALID);
+
+
 
 		#20;
 
