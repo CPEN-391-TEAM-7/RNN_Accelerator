@@ -11,7 +11,7 @@ module matmul #(
 	input  logic [DATA2_COL_BITS-1:0] sel,
 
 	output logic 					  ready,
-	output logic [15:0] 			  data_out,
+	output logic signed [15:0]		  data_out,
 	output logic [DATA1_LEN_BITS-1:0] sel_vec,
 	output logic [DATA2_ROW_BITS-1:0] sel_row,
 	output logic [DATA2_COL_BITS-1:0] sel_col
@@ -21,7 +21,7 @@ module matmul #(
 	matrix_state state;
 
 	logic        			   imm_write, imm_reset;
-	logic [15:0] 			   imm_in, imm_out;
+	logic signed [15:0] 	   imm_in, imm_out;
 	logic signed [31:0] 	   result;
 	logic [DATA2_COL_BITS-1:0] imm_sel;
 
