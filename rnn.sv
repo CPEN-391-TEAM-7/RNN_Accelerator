@@ -22,7 +22,7 @@ state_t state;
 
 logic signed    [15:0] result;
 logic           [15:0] half_data_out;
-logic           [31:0] multiply_holder;
+logic signed    [31:0] multiply_holder;
 logic  [`RNN_BITS-1:0] bias_sel, dense_sel;
 
 
@@ -48,7 +48,7 @@ tensor_1d #(.LEN(`EMB_BITS)) input_char(
 // Will be rewritten after each char
 // ==========================================================
 logic                 h_write, h_clr;
-logic          [15:0] h_in, h_out;
+logic signed   [15:0] h_in, h_out;
 logic [`RNN_BITS-1:0] h_sel;
 
 tensor_1d #(.LEN(`RNN_BITS)) hidden(
@@ -110,7 +110,7 @@ tensor_1d #(.LEN(`RNN_BITS)) rnn_bias(
 // dense layer vector module
 // ==========================================================
 logic                 d_write;
-logic          [15:0] d_in, d_out;
+logic signed   [15:0] d_in, d_out;
 logic [`RNN_BITS-1:0] d_sel;
 
 tensor_1d #(.LEN(`RNN_BITS)) dense(
