@@ -118,7 +118,7 @@ tensor_1d #(.LEN(`RNN_BITS)) dense(
 	.sel(d_sel), .param_in(d_in), .param_out(d_out));
 
 // dense layer bias scalar
-logic [15:0] dense_bias;
+logic signed [15:0] dense_bias;
 // ==========================================================
 
 
@@ -128,7 +128,7 @@ logic [15:0] dense_bias;
 // weight matrix multiply controller
 // ==========================================================
 logic                  mm1_start, mm1_ready;
-logic   [15:0] signed  mm1_out;
+logic signed    [15:0] mm1_out;
 logic [ `EMB_BITS-1:0] mm1_sel_vec, mm1_sel_row; 
 logic [ `RNN_BITS-1:0] mm1_sel, mm1_sel_col;
 

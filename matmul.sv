@@ -21,7 +21,7 @@ module matmul #(
 	matrix_state state;
 
 	logic        			   imm_write, imm_reset;
-	logic [15:0] 			   imm_in, imm_out;
+	logic signed [15:0] 	   imm_in, imm_out;
 	logic signed [31:0] 	   result;
 	logic [DATA2_COL_BITS-1:0] imm_sel;
 
