@@ -1,12 +1,12 @@
 
 module rnn(
-	input  logic 		clk,
-	input  logic 		rst_n,
-	input  logic 		read,
-	input  logic		write,
-	input  logic [ 2:0] addr,
-	input  logic [31:0]	data_in,
-	output logic [31:0] data_out
+	input  logic 		clk,		// DE1 clock input
+	input  logic 		rst_n,		// active low reset
+	input  logic 		read,		// avalon read signal
+	input  logic		write,		// avalon write signal
+	input  logic [ 2:0] addr,		// avalon address signal 
+	input  logic [31:0]	data_in,	// avalon data_in from C code
+	output logic [31:0] data_out    // output data to avalon bus
 	);
 
 
@@ -21,7 +21,7 @@ typedef enum {LOAD, START, BUSY, BIAS, DENSE, VALID, CLEAR} state_t;
 state_t state;
 
 logic signed    [15:0] result;
-logic           [15:0] half_data_out;
+logic signed    [15:0] half_data_out;
 logic signed    [31:0] multiply_holder;
 logic  [`RNN_BITS-1:0] bias_sel, dense_sel;
 
@@ -31,7 +31,7 @@ logic  [`RNN_BITS-1:0] bias_sel, dense_sel;
 // Will be rewritten after each char
 // ==========================================================
 logic                  i_write;
-logic           [15:0] i_in, i_out;
+logic  signed   [15:0] i_in, i_out;
 logic  [`EMB_BITS-1:0] i_sel;
 
 
@@ -63,7 +63,7 @@ tensor_1d #(.LEN(`RNN_BITS)) hidden(
 // RNN Weight matrix
 // ==========================================================
 logic                  r0_write;
-logic           [15:0] r0_in, r0_out;
+logic signed    [15:0] r0_in, r0_out;
 logic [`EMB_BITS-1 :0] r0_sel_r;
 logic [`RNN_BITS-1 :0] r0_sel_c;
 
@@ -79,7 +79,7 @@ tensor_2d #(.ROW_BITS(`EMB_BITS), .COL_BITS(`RNN_BITS)) rnn_0(
 // RNN Recurrent matrix
 // ==========================================================
 logic                  r1_write;
-logic           [15:0] r1_in, r1_out;
+logic signed    [15:0] r1_in, r1_out;
 logic  [`RNN_BITS-1:0] r1_sel_r, r1_sel_c;
 
 
@@ -95,7 +95,7 @@ tensor_2d #(.ROW_BITS(`RNN_BITS), .COL_BITS(`RNN_BITS) ) rnn_1(
 // recurrent bias tensor module
 // ==========================================================
 logic                 rb_write;
-logic          [15:0] rb_in, rb_out;
+logic signed   [15:0] rb_in, rb_out;
 logic [`RNN_BITS-1:0] rb_sel;
 
 
@@ -128,7 +128,7 @@ logic [15:0] dense_bias;
 // weight matrix multiply controller
 // ==========================================================
 logic                  mm1_start, mm1_ready;
-logic           [15:0] mm1_out;
+logic   [15:0] signed  mm1_out;
 logic [ `EMB_BITS-1:0] mm1_sel_vec, mm1_sel_row; 
 logic [ `RNN_BITS-1:0] mm1_sel, mm1_sel_col;
 
@@ -147,7 +147,7 @@ matmul #(.DATA1_LEN_BITS(`EMB_BITS), .DATA2_ROW_BITS(`EMB_BITS), .DATA2_COL_BITS
 // Recurrent matrix multiply controller
 // ==========================================================
 logic                  mm2_start, mm2_ready;
-logic           [15:0] mm2_out;
+logic signed    [15:0] mm2_out;
 logic [ `RNN_BITS-1:0] mm2_sel_vec, mm2_sel_row; 
 logic [ `RNN_BITS-1:0] mm2_sel_col;
 
@@ -165,7 +165,7 @@ matmul #(.DATA1_LEN_BITS(`RNN_BITS), .DATA2_ROW_BITS(`RNN_BITS), .DATA2_COL_BITS
 // ==========================================================
 // Tanh activation calculator (Single Cycle!)
 // ==========================================================
-logic [15:0] tanh_in, tanh_out;
+logic signed [15:0] tanh_in, tanh_out;
 tanh activation(.in(tanh_in), .out(tanh_out));
 // ==========================================================
 
@@ -221,6 +221,8 @@ always_ff @(posedge clk or negedge rst_n) begin
 		dense_bias <= 15'b0;
 		result     <= 15'b0;
 		state      <= LOAD;
+		dense_sel  <= 0;
+		bias_sel   <= 0;
 	end else begin
 		case(state)
 

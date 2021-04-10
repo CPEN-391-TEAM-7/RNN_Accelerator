@@ -126,6 +126,7 @@ module rnn_tb();
 			for (c0=0; c0< 32; c0=c0+1) begin
 				data_in <= {r0[7:0], c0[7:0], rnn_weights_rom.W[r0][c0]};
 				@(negedge clk)
+				// built in asserts to check input correctness
 				assert(dut.rnn_0.matrix[r0][c0] === rnn_weights_rom.W[r0][c0]);
 			end
 		end
@@ -148,6 +149,7 @@ module rnn_tb();
 			for (c1=0; c1< 32; c1=c1+1) begin
 				data_in <= {r1[7:0], c1[7:0], rnn_recurrent_rom.R[r1][c1]};
 				@(negedge clk)
+				// built in asserts to check input correctness
 				assert(dut.rnn_1.matrix[r1][c1] === rnn_recurrent_rom.R[r1][c1]);
 			end
 		end
@@ -171,6 +173,7 @@ module rnn_tb();
 		for (rb=0; rb< 32; rb=rb+1) begin
 			data_in <= {rb[15:0], rnn_bias_rom.RB[rb]};
 			@(negedge clk)
+			// built in asserts to check input correctness
 			assert(dut.rnn_bias.vector[rb] === rnn_bias_rom.RB[rb]);
 		end
 
@@ -193,6 +196,7 @@ module rnn_tb();
 		for (dv=0; dv< 32; dv=dv+1) begin
 			data_in <= {dv[15:0], dense_rom.D[dv]};
 			@(negedge clk)
+			// built in asserts to check input correctness
 			assert(dut.dense.vector[dv] === dense_rom.D[dv]);
 		end
 
@@ -275,13 +279,13 @@ module rnn_tb();
 		// Full multiply test results
 		// ==========================================================
 		@(posedge dut.weight_multiplier.ready)
-		//TODO get actual asserts
+		// testing done at system level
 
 		@(posedge dut.recurrent_multiplier.ready)
-		//TODO get actual asserts
+		// test done at system level
 
 		wait(dut.state === dut.LOAD);
-		//TODO get actual asserts
+
 
 		#10;
 
